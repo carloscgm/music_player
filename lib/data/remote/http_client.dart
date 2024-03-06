@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_mvvm/data/remote/interceptor/dio_logging_interceptor.dart';
-import 'package:flutter_mvvm/data/remote/network_endpoints.dart';
+import 'package:music_player/data/remote/interceptor/dio_logging_interceptor.dart';
+import 'package:music_player/data/remote/network_endpoints.dart';
 
 import 'credentials_wallet.dart';
 
@@ -13,21 +13,23 @@ class HttpClient {
     return _httpClient;
   }
 
-  // https://github.com/flutterchina/dio/blob/develop/example/lib/queued_interceptor_crsftoken.dart
-  // https://gist.github.com/TimurMukhortov/a1c9819e3779015e54bc3964b7d2308a
   HttpClient._internal() {
     dio.interceptors
       ..add(DioLoggingInterceptor())
       ..add(QueuedInterceptorsWrapper(onRequest: (options, handler) async {
+        // Token refresh logic
+        // https://github.com/flutterchina/dio/blob/develop/example/lib/queued_interceptor_crsftoken.dart
+        // https://gist.github.com/TimurMukhortov/a1c9819e3779015e54bc3964b7d2308a
+
         await _addAuthHeader(options.headers);
         handler.next(options);
-      }, onError: (DioError error, handler) async {
+      }, onError: (DioException error, handler) async {
         if (error.response?.statusCode == 401) {
           // Refresh token and try again
           try {
             await _refreshToken();
             return handler.resolve(await _retry(error.requestOptions));
-          } on DioError catch (error) {
+          } on DioException catch (error) {
             return handler.next(error);
           }
         }
@@ -60,8 +62,7 @@ class HttpClient {
   Future<Response<dynamic>> _retry(RequestOptions requestOptions) async {
     final headers = requestOptions.headers;
     await _addAuthHeader(headers);
-    final options =
-    Options(method: requestOptions.method, headers: headers);
+    final options = Options(method: requestOptions.method, headers: headers);
 
     return Dio().request<dynamic>(requestOptions.path,
         data: requestOptions.data,

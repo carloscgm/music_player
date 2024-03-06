@@ -1,9 +1,8 @@
-import 'package:flutter_mvvm/data/auth/remote/auth_remote_impl.dart';
-import 'package:flutter_mvvm/domain/auth_repository.dart';
+import 'package:music_player/data/auth/remote/auth_remote_impl.dart';
+import 'package:music_player/domain/auth_repository.dart';
 
 class AuthDataImpl implements AuthRepository {
   final AuthRemoteImpl _remoteImpl;
-
   AuthDataImpl(this._remoteImpl);
 
   @override

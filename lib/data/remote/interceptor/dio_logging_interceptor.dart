@@ -1,50 +1,74 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:music_player/core/extensions/core_string_extensions.dart';
 
 class DioLoggingInterceptor extends Interceptor {
   DioLoggingInterceptor();
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    super.onRequest(options, handler);
-    debugPrint('<-- HTTP ${options.method} Request');
+    final buffer = StringBuffer();
 
-    printLog('Uri', options.uri);
-    debugPrint('Headers:');
-    options.headers.forEach((key, v) => printLog(' - $key', v));
-    printLog('Body', options.data ?? "");
+    buffer.writeln('<-- HTTP ${options.method} Request');
+    buffer.writeln(' Uri: ${options.uri}');
+    buffer.writeln(' Headers:');
+    options.headers.forEach((key, v) => buffer.writeln('  - $key: $v'));
+    buffer.writeln(' Extra: ${options.extra.toString()}');
+    buffer.writeln(' Body: ${options.data.toString()}');
+    buffer.writeln('--> END HTTP ${options.method} Request');
 
-    debugPrint('--> END HTTP ${options.method} Request');
+    _debugPrint(buffer.toString());
+
+    handler.next(options);
   }
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
-    super.onError(err, handler);
-    debugPrint('<-- HTTP Error');
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    final buffer = StringBuffer();
 
-    debugPrint('Uri: ${err.requestOptions.uri}');
+    buffer.writeln('<-- HTTP Error');
+    buffer.writeln(' Uri: ${err.requestOptions.uri}');
+
     if (err.response != null) {
-      debugPrint('Status code: ${err.response?.statusCode.toString()}');
+      buffer.writeln(' Status code: ${err.response?.statusCode.toString()}');
     }
-    printLog('Message', err.message);
 
-    debugPrint('--> END HTTP Error');
+    buffer.writeln(' Error: ${err.error}');
+
+    if (err.message != null) {
+      buffer.writeln(' Message: ${err.message}');
+    }
+
+    buffer.writeln('--> END HTTP Error');
+
+    _debugPrint(buffer.toString());
+
+    handler.next(err);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    super.onResponse(response, handler);
-    debugPrint('<-- HTTP Response');
+    final buffer = StringBuffer();
 
-    printLog('Uri', response.realUri);
-    printLog('Status code', response.statusCode ?? -1);
-    printLog('Redirect', response.isRedirect ?? false);
-    printLog('Body', response.data ?? "");
+    buffer.writeln('<-- HTTP ${response.requestOptions.method} Response');
 
-    debugPrint('--> END HTTP Response');
+    buffer.writeln(' Uri: ${response.realUri}');
+    buffer.writeln(' Status Code: ${response.statusCode}');
+    buffer.writeln(' Redirect: ${response.isRedirect}');
+    buffer.writeln(' Headers:');
+    response.headers
+        .forEach((key, v) => buffer.writeln('  - $key: ${v.join('\r\n\t')}'));
+    buffer.writeln(' Body: ${response.toString().truncateTo(3000)}');
+
+    buffer.writeln('--> END HTTP ${response.requestOptions.method} Response');
+
+    _debugPrint(buffer.toString());
+
+    handler.next(response);
   }
 
-  void printLog(String key, Object v) {
-    debugPrint('$key: $v');
+  void _debugPrint(String data) {
+    log(data);
   }
 }

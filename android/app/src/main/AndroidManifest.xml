@@ -5,6 +5,7 @@
 
    <application
         android:label="flutter_mvvm"
+        android:enableOnBackInvokedCallback="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

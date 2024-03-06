@@ -1,37 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_mvvm/view/common/localization/localization.dart';
-import 'package:flutter_mvvm/view/common/resources/app_styles.dart';
-import 'package:flutter_mvvm/view/di/app_modules.dart';
-import 'package:flutter_mvvm/view/page/splash/splash_page.dart';
+import 'package:music_player/presentation/common/localization/app_localizations.dart';
+import 'package:music_player/presentation/common/localization/localization_manager.dart';
+import 'package:music_player/presentation/navigation/navigation_routes.dart';
+
+import 'core/di/app_modules.dart';
+import 'presentation/common/resources/app_styles.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   AppModules().setup(); // Setup dependency injection
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Flutter MVVM',
       theme: AppStyles.appTheme,
       darkTheme: AppStyles.appDarkTheme,
-      themeMode: ThemeMode.system,
-      localizationsDelegates: const [
-        Localization.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('es'),
-      ],
-      home: const SplashPage(),
+      themeMode: ThemeMode.system, // Enable automatic dark theme support
+      routerConfig: router,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      onGenerateTitle: (context) {
+        LocalizationManager.init(context: context);
+        return localizations.app_title;
+      },
       debugShowCheckedModeBanner: false,
     );
   }

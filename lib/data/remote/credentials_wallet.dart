@@ -1,9 +1,11 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class CredentialsWallet {
   static const refreshTokenKey = 'refresh_token';
   static const accessTokenKey = 'access_token';
   static const expiresInKey = 'expires_in';
+  static const storage = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true));
 
   static getRefreshToken() async {
     return await _getString(refreshTokenKey);
@@ -27,7 +29,8 @@ class CredentialsWallet {
 
   static saveExpirationTimeStamp(int expiresIn) async {
     // Current date in millis + expiration in millis - 5 minutes in millis
-    await _storeInt(expiresInKey, (DateTime.now().millisecondsSinceEpoch + (expiresIn * 1000) - 300000));
+    await _storeInt(expiresInKey,
+        (DateTime.now().millisecondsSinceEpoch + (expiresIn * 1000) - 300000));
   }
 
   static saveAll(dynamic jsonDecode) async {
@@ -37,29 +40,25 @@ class CredentialsWallet {
   }
 
   static clearAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(refreshTokenKey);
-    await prefs.remove(accessTokenKey);
-    await prefs.remove(expiresInKey);
+    await storage.delete(key: refreshTokenKey);
+    await storage.delete(key: accessTokenKey);
+    await storage.delete(key: expiresInKey);
   }
 
   static _storeString(String key, String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString(key, value);
+    await storage.write(key: key, value: value);
   }
 
   static _getString(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(key) ?? '';
+    return await storage.read(key: key) ?? '';
   }
 
   static _storeInt(String key, int value) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setInt(key, value);
+    await _storeString(key, value.toString());
   }
 
   static _getInt(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(key) ?? 0;
+    final string = await _getString(key);
+    return int.tryParse(string) ?? 0;
   }
 }
