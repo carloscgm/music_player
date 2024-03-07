@@ -7,6 +7,9 @@ class AppStyles {
     colorSchemeSeed: Colors.blue,
     useMaterial3: true,
   ).copyWith(
+    textTheme: TextTheme(
+      labelSmall: TextStyle(color: Colors.grey[800], fontSize: 14),
+    ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: <TargetPlatform, PageTransitionsBuilder>{
         TargetPlatform.android: ZoomPageTransitionsBuilder(),
@@ -20,6 +23,9 @@ class AppStyles {
     colorSchemeSeed: Colors.blue,
     useMaterial3: true,
   ).copyWith(
+    textTheme: TextTheme(
+      labelSmall: TextStyle(color: Colors.grey[100], fontSize: 14),
+    ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: <TargetPlatform, PageTransitionsBuilder>{
         TargetPlatform.android: ZoomPageTransitionsBuilder(),

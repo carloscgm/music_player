@@ -1,9 +1,10 @@
 import 'package:flutter/widgets.dart';
-import 'package:music_player/presentation/view/home/home_page.dart';
 import 'package:go_router/go_router.dart';
+import 'package:music_player/presentation/view/home/home_page.dart';
 import 'package:music_player/presentation/view/playlist/playlist_page.dart';
 import 'package:music_player/presentation/view/settings/settings_page.dart';
 import 'package:music_player/presentation/view/songs/song_page.dart';
+import 'package:music_player/presentation/view/splash/splash_page.dart';
 
 abstract class NavigationRoutes {
   // Route paths (for subroutes) - private access
@@ -17,6 +18,7 @@ abstract class NavigationRoutes {
   static const String playListRoute = '/playlist';
   static const String songRoute = '/songs';
   static const String settingsRoute = '/settings';
+  static const String splashRoute = '/splash';
 }
 
 // Nav keys
@@ -31,7 +33,7 @@ final GlobalKey<NavigatorState> _settingsNavigatorKey =
 
 final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: NavigationRoutes.playListRoute,
+    initialLocation: NavigationRoutes.splashRoute,
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => HomePage(navigationShell: shell),
@@ -60,4 +62,9 @@ final router = GoRouter(
           ])
         ],
       ),
+      GoRoute(
+          path: NavigationRoutes.splashRoute,
+          parentNavigatorKey: _rootNavigatorKey,
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: SplashPage())),
     ]);

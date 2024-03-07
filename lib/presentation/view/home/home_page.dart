@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:music_player/presentation/common/localization/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:music_player/presentation/common/localization/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.navigationShell});

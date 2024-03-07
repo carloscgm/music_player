@@ -15,13 +15,19 @@ class _PlayListPageState extends State<PlayListPage>
     super.build(context);
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.artists_title),
-          centerTitle: true,
-        ),
-        body: const Center(
-          child: Text('PlaylistPage'),
-        ));
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.playlist_title),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Text('PlaylistPage'),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
+        label: Text(AppLocalizations.of(context)!.playlist_add),
+        icon: const Icon(Icons.add),
+      ),
+    );
   }
 
   @override

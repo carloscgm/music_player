@@ -24,7 +24,9 @@
   "action_ok": "Aceptar",
   "action_cancel": "Cancelar",
   "action_retry": "Reintentar",
-  "playlist_title": "Playlist",
-  "songs_title": "Songs",
-  "settings_title": "Settings"
+  "playlist_title": "Listas",
+  "playlist_add": "Nueva lista",
+  "songs_title": "Canciones",
+  "settings_title": "Ajustes",
+  "songs_empty": "No hay canciones todavía"
 }

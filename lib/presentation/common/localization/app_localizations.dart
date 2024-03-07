@@ -246,20 +246,32 @@ abstract class AppLocalizations {
   /// No description provided for @playlist_title.
   ///
   /// In en, this message translates to:
-  /// **'Listas'**
+  /// **'Playlist'**
   String get playlist_title;
+
+  /// No description provided for @playlist_add.
+  ///
+  /// In en, this message translates to:
+  /// **'New playlist'**
+  String get playlist_add;
 
   /// No description provided for @songs_title.
   ///
   /// In en, this message translates to:
-  /// **'Canciones'**
+  /// **'Songs'**
   String get songs_title;
 
   /// No description provided for @settings_title.
   ///
   /// In en, this message translates to:
-  /// **'Ajustes'**
+  /// **'Settings'**
   String get settings_title;
+
+  /// No description provided for @songs_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No songs yet'**
+  String get songs_empty;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

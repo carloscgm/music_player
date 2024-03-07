@@ -16,7 +16,7 @@ class _SettingsPageState extends State<SettingsPage>
 
     return Scaffold(
         appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.artists_title),
+          title: Text(AppLocalizations.of(context)!.settings_title),
           centerTitle: true,
         ),
         body: const Center(
