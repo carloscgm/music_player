@@ -18,7 +18,6 @@ class _SongsPageState extends State<SongsPage>
     with AutomaticKeepAliveClientMixin {
   final _songViewModel = inject<SongsViewModel>();
   List<Song> _songList = List.empty();
-  bool isPermissionGranted = false;
 
   @override
   void initState() {
@@ -27,7 +26,7 @@ class _SongsPageState extends State<SongsPage>
     _songViewModel.songsListState.stream.listen((state) {
       switch (state.status) {
         case Status.LOADING:
-          //LoadingOverlay.show(context);
+          LoadingOverlay.show(context);
           break;
         case Status.COMPLETED:
           LoadingOverlay.hide();
@@ -47,7 +46,7 @@ class _SongsPageState extends State<SongsPage>
       }
     });
 
-    //_songViewModel.permissionGranted();
+    _songViewModel.fetchSongs();
   }
 
   @override

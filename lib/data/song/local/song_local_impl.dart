@@ -1,5 +1,7 @@
-import 'package:flutter/services.dart';
-import 'package:flutter_storage_path/flutter_storage_path.dart';
+import 'dart:io';
+
+import 'package:external_path/external_path.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'package:music_player/data/remote/error/remote_error_mapper.dart';
 import 'package:music_player/model/song.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,17 +9,51 @@ import 'package:permission_handler/permission_handler.dart';
 class SongLocalImpl {
   SongLocalImpl();
 
+  final List<String> typeToSearchMaster = [
+    ExternalPath.DIRECTORY_DOWNLOADS,
+    ExternalPath.DIRECTORY_AUDIOBOOKS,
+    ExternalPath.DIRECTORY_MUSIC,
+    ExternalPath.DIRECTORY_PODCASTS
+  ];
+
   Future<List<Song>> getSongs() async {
     try {
-      String imagePath;
-      try {
-        imagePath = await StoragePath.imagesPath ?? 'nada';
-      } on PlatformException {
-        imagePath = 'Failed to get path';
+      print('buscando');
+
+      List<Song> result = [];
+      List<String> typeToSearch = [];
+      List<String> sources = await ExternalPath.getExternalStorageDirectories();
+
+      for (var typeElement in typeToSearchMaster) {
+        typeToSearch.add(
+            await ExternalPath.getExternalStoragePublicDirectory(typeElement));
+        for (int i = 1; i < sources.length; i++) {
+          typeToSearch.add(
+              (await ExternalPath.getExternalStoragePublicDirectory(
+                      typeElement))
+                  .replaceAll(sources[0], sources[i]));
+        }
       }
-      print(imagePath);
-      await Future.delayed(const Duration(seconds: 2));
-      return mock;
+
+      typeToSearch.forEach((path) async {
+        Directory dir = Directory(path);
+        dir.list(recursive: true).forEach((element) async {
+          if (element.path.endsWith('mp3')) {
+            print(' desde aqui [${element.path}]');
+            try {
+              Metadata metadata =
+                  await MetadataGod.readMetadata(file: element.path);
+              result.add(Song.fromMetadata(metadata));
+            } on Exception catch (_, __) {
+              result.add(Song.fromData(
+                  element.path.substring(element.path.lastIndexOf('/') + 1),
+                  (await File(element.path).stat()).size));
+            }
+          }
+        });
+      });
+
+      return result;
     } catch (e) {
       throw RemoteErrorMapper.getException(e);
     }
@@ -27,29 +63,3 @@ class SongLocalImpl {
     return await Permission.audio.status;
   }
 }
-
-final mock = [
-  Song(id: 1, title: 'Falling Away', algo: 'Breaking Benjamin'),
-  Song(id: 2, title: 'Noches en BCN', algo: 'Zatu'),
-  Song(id: 3, title: 'Efectos Vocales', algo: 'Nach'),
-  Song(id: 4, title: 'The Diary of Jane', algo: 'Breaking Benjamin'),
-  Song(id: 5, title: 'Sigo Buscándote', algo: 'Zatu'),
-  Song(id: 6, title: 'Efectos Secundarios', algo: 'Nach'),
-  Song(id: 7, title: 'I Will Not Bow', algo: 'Breaking Benjamin'),
-  Song(id: 8, title: 'Estamos en Ello', algo: 'Zatu'),
-  Song(id: 9, title: 'Efectos Especiales', algo: 'Nach'),
-  Song(id: 10, title: 'Breath', algo: 'Breaking Benjamin'),
-  Song(id: 11, title: 'Barcelona Nights', algo: 'Zatu'),
-  Song(id: 12, title: 'Efectos Colaterales', algo: 'Nach'),
-  Song(id: 13, title: 'So Cold', algo: 'Breaking Benjamin'),
-  Song(id: 14, title: 'BCN Nocturno', algo: 'Zatu'),
-  Song(id: 15, title: 'Efectos Adversos', algo: 'Nach'),
-  Song(id: 16, title: 'Dance with the Devil', algo: 'Breaking Benjamin'),
-  Song(id: 17, title: 'Caminando por Barcelona', algo: 'Zatu'),
-  Song(id: 18, title: 'Efectos Secundarios (Remix)', algo: 'Nach'),
-  Song(id: 19, title: 'Angels Fall', algo: 'Breaking Benjamin'),
-  Song(id: 20, title: 'Amanecer en BCN', algo: 'Zatu'),
-  Song(id: 21, title: 'Efectos Visuales', algo: 'Nach'),
-  Song(id: 22, title: 'Torniquet', algo: 'Breaking Benjamin'),
-  Song(id: 23, title: 'Luces de la Ciudad', algo: 'Zatu'),
-];
