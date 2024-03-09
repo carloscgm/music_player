@@ -7,6 +7,7 @@ class AppStyles {
     brightness: Brightness.light,
     colorSchemeSeed: Colors.blue,
     useMaterial3: true,
+    cardColor: AppColors.backgroundGrey,
     scaffoldBackgroundColor: AppColors.backgroundGrey,
     appBarTheme: const AppBarTheme(color: AppColors.backgroundGrey),
   ).copyWith(
@@ -29,10 +30,13 @@ class AppStyles {
   static ThemeData appDarkTheme = ThemeData(
           brightness: Brightness.dark,
           colorSchemeSeed: Colors.blue,
+          cardColor: AppColors.backgroundBlack,
           useMaterial3: true,
           scaffoldBackgroundColor: AppColors.backgroundBlack,
           appBarTheme: const AppBarTheme(color: AppColors.backgroundBlack))
       .copyWith(
+    sliderTheme: const SliderThemeData(
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 0)),
     textTheme: TextTheme(
       titleSmall: const TextStyle(
           fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),

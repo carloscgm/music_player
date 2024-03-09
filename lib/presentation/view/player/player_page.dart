@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:music_player/model/song.dart';
-import 'package:music_player/presentation/common/resources/app_colors.dart';
 import 'package:music_player/presentation/common/widget/player/neu_box.dart';
 
 class PlayerPage extends StatefulWidget {
@@ -16,7 +15,6 @@ class _PlayerPageState extends State<PlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundGrey,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
@@ -29,10 +27,6 @@ class _PlayerPageState extends State<PlayerPage> {
                   IconButton(
                       onPressed: () => context.pop(),
                       icon: const Icon(Icons.arrow_back)),
-                  const Text(
-                    'P L A Y L I S T',
-                    style: TextStyle(color: Colors.black),
-                  ),
                   IconButton(onPressed: () {}, icon: const Icon(Icons.menu))
                 ],
               ),

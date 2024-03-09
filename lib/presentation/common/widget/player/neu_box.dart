@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:music_player/presentation/common/resources/app_colors.dart';
 
 class NeuBox extends StatelessWidget {
   final Widget? child;
@@ -7,21 +6,23 @@ class NeuBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isLight = Theme.of(context).brightness == Brightness.light;
+
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: AppColors.backgroundGrey,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade500,
-              blurRadius: 15,
+              color: isLight ? Colors.grey.shade500 : Colors.black,
+              blurRadius: isLight ? 15 : 6,
               offset: const Offset(4, 4),
             ),
-            const BoxShadow(
-              color: Colors.white,
-              blurRadius: 15,
-              offset: Offset(-4, -4),
+            BoxShadow(
+              color: isLight ? Colors.white : Colors.grey.shade800,
+              blurRadius: isLight ? 15 : 6,
+              offset: const Offset(-4, -4),
             ),
           ]),
       child: child,
