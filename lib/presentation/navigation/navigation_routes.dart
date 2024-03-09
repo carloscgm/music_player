@@ -1,6 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:music_player/model/song.dart';
 import 'package:music_player/presentation/view/home/home_page.dart';
+import 'package:music_player/presentation/view/player/player_page.dart';
+import 'package:music_player/presentation/view/playlist/add_songs/add_song_page.dart';
 import 'package:music_player/presentation/view/playlist/playlist_page.dart';
 import 'package:music_player/presentation/view/settings/settings_page.dart';
 import 'package:music_player/presentation/view/songs/song_page.dart';
@@ -9,6 +12,8 @@ import 'package:music_player/presentation/view/splash/splash_page.dart';
 abstract class NavigationRoutes {
   // Route paths (for subroutes) - private access
   static const String _artistDetailPath = 'detail';
+  static const String _addSongPath = 'add_song';
+  //static const String _playerpath = 'player';
 
   // Route names
   static const String initialRoute = '/';
@@ -16,6 +21,10 @@ abstract class NavigationRoutes {
   static const String artistDetailRoute = '$artistsRoute/$_artistDetailPath';
 
   static const String playListRoute = '/playlist';
+  static const String addSongPlayListRoute = '$playListRoute/$_addSongPath';
+  static const String playerRoute = '/player';
+  //static const String playerPLRoute = '$playListRoute/$_playerpath';
+  //static const String playerSongRoute = '$songRoute/$_playerpath';
   static const String songRoute = '/songs';
   static const String settingsRoute = '/settings';
   static const String splashRoute = '/splash';
@@ -40,18 +49,31 @@ final router = GoRouter(
         branches: [
           StatefulShellBranch(navigatorKey: _playlistNavigatorKey, routes: [
             GoRoute(
-              path: NavigationRoutes.playListRoute,
-              parentNavigatorKey: _playlistNavigatorKey,
-              pageBuilder: (context, state) =>
-                  const NoTransitionPage(child: PlayListPage()),
-            ),
+                path: NavigationRoutes.playListRoute,
+                parentNavigatorKey: _playlistNavigatorKey,
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: PlayListPage()),
+                routes: [
+                  GoRoute(
+                      path: NavigationRoutes._addSongPath,
+                      parentNavigatorKey: _playlistNavigatorKey,
+                      pageBuilder: (context, state) =>
+                          const NoTransitionPage(child: AddSongPage())),
+                  // GoRoute(
+                  //     path: NavigationRoutes._playerpath,
+                  //     parentNavigatorKey: _playlistNavigatorKey,
+                  //     pageBuilder: (context, state) =>
+                  //         const NoTransitionPage(child: PlayerPage())),
+                ]),
           ]),
           StatefulShellBranch(navigatorKey: _songsNavigatorKey, routes: [
             GoRoute(
-                path: NavigationRoutes.songRoute,
-                parentNavigatorKey: _songsNavigatorKey,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage(child: SongsPage())),
+              path: NavigationRoutes.songRoute,
+              parentNavigatorKey: _songsNavigatorKey,
+              pageBuilder: (context, state) =>
+                  const NoTransitionPage(child: SongsPage()),
+              routes: const [],
+            ),
           ]),
           StatefulShellBranch(navigatorKey: _settingsNavigatorKey, routes: [
             GoRoute(
@@ -62,6 +84,13 @@ final router = GoRouter(
           ])
         ],
       ),
+      GoRoute(
+          path: NavigationRoutes.playerRoute,
+          parentNavigatorKey: _rootNavigatorKey,
+          pageBuilder: (context, state) {
+            final Song extra = state.extra as Song;
+            return NoTransitionPage(child: PlayerPage(song: extra));
+          }),
       GoRoute(
           path: NavigationRoutes.splashRoute,
           parentNavigatorKey: _rootNavigatorKey,

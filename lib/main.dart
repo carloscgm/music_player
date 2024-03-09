@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Flutter MVVM',
+      title: 'Music Player',
       theme: AppStyles.appTheme,
       darkTheme: AppStyles.appDarkTheme,
       themeMode: ThemeMode.system, // Enable automatic dark theme support

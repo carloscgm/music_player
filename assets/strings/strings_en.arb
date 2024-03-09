@@ -26,7 +26,9 @@
   "action_retry": "Retry",
   "playlist_title": "Playlist",
   "playlist_add": "New playlist",
+  "playlist_name": "Playlist name",
   "songs_title": "Songs",
+  "songs_add": "Add songs",
   "settings_title": "Settings",
   "songs_empty": "No songs yet"
 }

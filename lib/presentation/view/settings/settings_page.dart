@@ -19,8 +19,11 @@ class _SettingsPageState extends State<SettingsPage>
           title: Text(AppLocalizations.of(context)!.settings_title),
           centerTitle: true,
         ),
-        body: const Center(
-          child: Text('Settings Page'),
+        body: Center(
+          child: Text(
+            'Settings Page',
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
         ));
   }
 

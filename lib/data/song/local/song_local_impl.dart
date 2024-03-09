@@ -16,43 +16,49 @@ class SongLocalImpl {
     ExternalPath.DIRECTORY_PODCASTS
   ];
 
-  Future<List<Song>> getSongs() async {
-    try {
-      print('buscando');
-
-      List<Song> result = [];
-      List<String> typeToSearch = [];
-      List<String> sources = await ExternalPath.getExternalStorageDirectories();
-
-      for (var typeElement in typeToSearchMaster) {
+  Future<List<String>> getSources(List<String> sources) async {
+    List<String> typeToSearch = [];
+    for (var typeElement in typeToSearchMaster) {
+      typeToSearch.add(
+          await ExternalPath.getExternalStoragePublicDirectory(typeElement));
+      for (int i = 1; i < sources.length; i++) {
         typeToSearch.add(
-            await ExternalPath.getExternalStoragePublicDirectory(typeElement));
-        for (int i = 1; i < sources.length; i++) {
-          typeToSearch.add(
-              (await ExternalPath.getExternalStoragePublicDirectory(
-                      typeElement))
-                  .replaceAll(sources[0], sources[i]));
+            (await ExternalPath.getExternalStoragePublicDirectory(typeElement))
+                .replaceAll(sources[0], sources[i]));
+      }
+    }
+    return typeToSearch;
+  }
+
+  Future<List<Song>> getSongsByDirs(List<String> typeToSearch) async {
+    List<Song> result = [];
+
+    for (int i = 0; i < typeToSearch.length; i++) {
+      Directory dir = Directory(typeToSearch[i]);
+      List<FileSystemEntity> listita = dir.listSync(recursive: true);
+      for (int j = 0; j < listita.length; j++) {
+        if (listita[j].path.endsWith('mp3')) {
+          try {
+            Metadata metadata =
+                await MetadataGod.readMetadata(file: listita[j].path);
+            result.add(Song.fromMetadata(metadata));
+          } on Exception catch (_, __) {
+            result.add(Song.fromData(listita[j]
+                .path
+                .substring(listita[j].path.lastIndexOf('/') + 1)));
+          }
         }
       }
+    }
 
-      typeToSearch.forEach((path) async {
-        Directory dir = Directory(path);
-        dir.list(recursive: true).forEach((element) async {
-          if (element.path.endsWith('mp3')) {
-            print(' desde aqui [${element.path}]');
-            try {
-              Metadata metadata =
-                  await MetadataGod.readMetadata(file: element.path);
-              result.add(Song.fromMetadata(metadata));
-            } on Exception catch (_, __) {
-              result.add(Song.fromData(
-                  element.path.substring(element.path.lastIndexOf('/') + 1),
-                  (await File(element.path).stat()).size));
-            }
-          }
-        });
-      });
+    return result;
+  }
 
+  Future<List<Song>> getSongs() async {
+    try {
+      List<String> sources = await ExternalPath.getExternalStorageDirectories();
+      List<String> typeToSearch = await getSources(sources);
+      List<Song> result = await getSongsByDirs(typeToSearch);
       return result;
     } catch (e) {
       throw RemoteErrorMapper.getException(e);

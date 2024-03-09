@@ -88,7 +88,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlist_add => 'New playlist';
 
   @override
+  String get playlist_name => 'Playlist name';
+
+  @override
   String get songs_title => 'Songs';
+
+  @override
+  String get songs_add => 'Add songs';
 
   @override
   String get settings_title => 'Settings';

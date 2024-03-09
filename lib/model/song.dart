@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:metadata_god/metadata_god.dart';
 
 class Song {
@@ -14,6 +15,7 @@ class Song {
   late String? genre;
   late Picture? picture;
   late int? fileSize;
+  late bool isFavorite;
 
   Song({
     required this.title,
@@ -29,7 +31,25 @@ class Song {
     this.genre,
     this.picture,
     this.fileSize,
+    this.isFavorite = false,
   });
+
+  //TODO: sacar imagenes de las canciones
+  Widget getImage() {
+    return const SizedBox(height: 330, width: 330, child: Placeholder());
+  }
+
+  setFavorite(bool isfav) {
+    isFavorite = isfav;
+  }
+
+  String getTitle() {
+    if (title.contains('.')) {
+      return title.substring(0, title.lastIndexOf('.'));
+    } else {
+      return title;
+    }
+  }
 
   Song.fromMetadata(Metadata metadata) {
     title = metadata.title!;
@@ -47,7 +67,7 @@ class Song {
     fileSize = metadata.fileSize;
   }
 
-  Song.fromData(String onlyTitle, int onlySize) {
+  Song.fromData(String onlyTitle) {
     title = onlyTitle;
     durationMs = 0.0;
     artist = '';
@@ -60,6 +80,6 @@ class Song {
     year = 0;
     genre = '';
     picture = null;
-    fileSize = onlySize;
+    fileSize = 0;
   }
 }

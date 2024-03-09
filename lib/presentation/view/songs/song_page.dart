@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:music_player/core/di/app_modules.dart';
 import 'package:music_player/model/song.dart';
 import 'package:music_player/presentation/common/base/resource_state.dart';
 import 'package:music_player/presentation/common/localization/app_localizations.dart';
 import 'package:music_player/presentation/common/widget/error/error_overlay.dart';
 import 'package:music_player/presentation/common/widget/loading/loading_overlay.dart';
+import 'package:music_player/presentation/navigation/navigation_routes.dart';
 import 'package:music_player/presentation/view/songs/viewmodel/songs_view_model.dart';
 
 class SongsPage extends StatefulWidget {
@@ -85,16 +87,18 @@ class ListSongs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.amber,
-      child: ListView.builder(
-        itemCount: list.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(list[index].title),
-          );
-        },
-      ),
+    return ListView.builder(
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          onTap: () =>
+              context.push(NavigationRoutes.playerRoute, extra: list[index]),
+          title: Text(
+            list[index].getTitle(),
+            style: const TextStyle(fontSize: 14),
+          ),
+        );
+      },
     );
   }
 }

@@ -255,11 +255,23 @@ abstract class AppLocalizations {
   /// **'New playlist'**
   String get playlist_add;
 
+  /// No description provided for @playlist_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist name'**
+  String get playlist_name;
+
   /// No description provided for @songs_title.
   ///
   /// In en, this message translates to:
   /// **'Songs'**
   String get songs_title;
+
+  /// No description provided for @songs_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add songs'**
+  String get songs_add;
 
   /// No description provided for @settings_title.
   ///
