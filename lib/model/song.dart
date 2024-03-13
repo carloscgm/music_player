@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:metadata_god/metadata_god.dart';
 
@@ -15,7 +16,7 @@ class Song {
   late String? genre;
   late Picture? picture;
   late int? fileSize;
-  late bool isFavorite;
+  late String path;
 
   Song({
     required this.title,
@@ -31,16 +32,30 @@ class Song {
     this.genre,
     this.picture,
     this.fileSize,
-    this.isFavorite = false,
+    required this.path,
   });
+
+  String getArtist() {
+    if (artist != null) {
+      return artist!;
+    } else {
+      return '';
+    }
+  }
 
   //TODO: sacar imagenes de las canciones
   Widget getImage() {
-    return const SizedBox(height: 330, width: 330, child: Placeholder());
-  }
-
-  setFavorite(bool isfav) {
-    isFavorite = isfav;
+    if (picture != null && picture!.data.isNotEmpty) {
+      return Container(
+        color: Colors.black,
+        child: Image.memory(
+          Uint8List.fromList(picture!.data),
+          fit: BoxFit.cover,
+        ),
+      );
+    } else {
+      return const SizedBox(height: 330, width: 330, child: Placeholder());
+    }
   }
 
   String getTitle() {
@@ -51,7 +66,7 @@ class Song {
     }
   }
 
-  Song.fromMetadata(Metadata metadata) {
+  Song.fromMetadata(Metadata metadata, String pathOfSong) {
     title = metadata.title!;
     durationMs = metadata.durationMs;
     artist = metadata.artist;
@@ -65,9 +80,10 @@ class Song {
     genre = metadata.genre;
     picture = metadata.picture;
     fileSize = metadata.fileSize;
+    path = pathOfSong;
   }
 
-  Song.fromData(String onlyTitle) {
+  Song.fromData(String onlyTitle, String pathOfSong) {
     title = onlyTitle;
     durationMs = 0.0;
     artist = '';
@@ -81,5 +97,6 @@ class Song {
     genre = '';
     picture = null;
     fileSize = 0;
+    path = pathOfSong;
   }
 }

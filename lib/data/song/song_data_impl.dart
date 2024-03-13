@@ -13,6 +13,11 @@ class SongDataImpl implements SongsRepository {
   }
 
   @override
+  Future<Song> getSongByPath(String path) {
+    return _localImpl.getSongByPath(path);
+  }
+
+  @override
   Future<PermissionStatus> permissionStatus() {
     return _localImpl.permissionStatus();
   }

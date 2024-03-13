@@ -71,7 +71,6 @@ class _PlayListPageState extends State<PlayListPage>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await context.push(NavigationRoutes.addSongPlayListRoute);
-          print('lo ejecuto ahora');
           _playListViewModel.fetchPlayList();
         },
         label: Text(AppLocalizations.of(context)!.playlist_add),

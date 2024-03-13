@@ -11,6 +11,7 @@ import 'package:music_player/domain/artist_repository.dart';
 import 'package:music_player/domain/playlist_repository.dart';
 import 'package:music_player/domain/songs_repository.dart';
 import 'package:music_player/presentation/view/artist/viewmodel/artist_view_model.dart';
+import 'package:music_player/presentation/view/player/bloc/audio_player_bloc.dart';
 import 'package:music_player/presentation/view/playlist/viewmodel/playlist_view_model.dart';
 import 'package:music_player/presentation/view/songs/viewmodel/songs_view_model.dart';
 
@@ -47,5 +48,6 @@ class AppModules {
     inject.registerFactory<PlayListRepository>(
         () => PlaylistDataImpl(inject.get()));
     inject.registerFactory(() => PlayListViewModel(inject.get()));
+    inject.registerFactory(() => AudioPlayerBloc(inject.get(), inject.get()));
   }
 }

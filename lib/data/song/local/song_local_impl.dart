@@ -16,6 +16,15 @@ class SongLocalImpl {
     ExternalPath.DIRECTORY_PODCASTS
   ];
 
+  Future<Song> getSongByPath(String path) async {
+    try {
+      Metadata metadata = await MetadataGod.readMetadata(file: path);
+      return Song.fromMetadata(metadata, path);
+    } on Exception catch (_, __) {
+      return Song.fromData(path.substring(path.lastIndexOf('/') + 1), path);
+    }
+  }
+
   Future<List<String>> getSources(List<String> sources) async {
     List<String> typeToSearch = [];
     for (var typeElement in typeToSearchMaster) {
@@ -41,16 +50,15 @@ class SongLocalImpl {
           try {
             Metadata metadata =
                 await MetadataGod.readMetadata(file: listita[j].path);
-            result.add(Song.fromMetadata(metadata));
+            result.add(Song.fromMetadata(metadata, listita[j].path));
           } on Exception catch (_, __) {
-            result.add(Song.fromData(listita[j]
-                .path
-                .substring(listita[j].path.lastIndexOf('/') + 1)));
+            result.add(Song.fromData(
+                listita[j].path.substring(listita[j].path.lastIndexOf('/') + 1),
+                listita[j].path));
           }
         }
       }
     }
-
     return result;
   }
 
