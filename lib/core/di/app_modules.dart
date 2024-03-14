@@ -11,9 +11,9 @@ import 'package:music_player/domain/artist_repository.dart';
 import 'package:music_player/domain/playlist_repository.dart';
 import 'package:music_player/domain/songs_repository.dart';
 import 'package:music_player/presentation/view/artist/viewmodel/artist_view_model.dart';
-import 'package:music_player/presentation/view/player/bloc/audio_player_bloc.dart';
 import 'package:music_player/presentation/view/playlist/viewmodel/playlist_view_model.dart';
 import 'package:music_player/presentation/view/songs/viewmodel/songs_view_model.dart';
+import 'package:music_player/service/player/player_services.dart';
 
 final inject = GetIt.instance;
 
@@ -23,6 +23,7 @@ class AppModules {
     _setupArtistModule();
     _setupSongsModule();
     _setupPlayListModule();
+    _setupPlayerModule();
   }
 
   _setupMainModule() {
@@ -48,6 +49,9 @@ class AppModules {
     inject.registerFactory<PlayListRepository>(
         () => PlaylistDataImpl(inject.get()));
     inject.registerFactory(() => PlayListViewModel(inject.get()));
-    inject.registerFactory(() => AudioPlayerBloc(inject.get(), inject.get()));
+  }
+
+  _setupPlayerModule() {
+    inject.registerFactory(() => PlayerServices(inject.get(), inject.get()));
   }
 }

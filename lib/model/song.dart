@@ -67,7 +67,8 @@ class Song {
   }
 
   Song.fromMetadata(Metadata metadata, String pathOfSong) {
-    title = metadata.title!;
+    title =
+        metadata.title ?? pathOfSong.substring(pathOfSong.lastIndexOf('/') + 1);
     durationMs = metadata.durationMs;
     artist = metadata.artist;
     album = metadata.album;

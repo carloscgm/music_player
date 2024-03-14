@@ -1,11 +1,12 @@
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:music_player/core/di/app_modules.dart';
 import 'package:music_player/model/song.dart';
 import 'package:music_player/presentation/common/widget/player/neu_box.dart';
-import 'package:music_player/presentation/view/player/bloc/audio_player_bloc.dart';
+import 'package:music_player/service/player/player_services.dart';
 
 class PlayerPageDrawer extends StatefulWidget {
   final Song song;
@@ -25,11 +26,26 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
   late Size _responsive;
   late CurvedAnimation _animator;
 
-  //controller audioplayer
-
+  //neuformism effect
   bool playPressed = false;
   bool skipPreviousPressed = false;
   bool skipNextPressed = false;
+  bool menuPressed = false;
+
+  //Player services
+  PlayerServices playerServices = inject.get<PlayerServices>();
+
+  //dataStreams
+  Duration currentPosition = const Duration();
+  Duration finalDuration = const Duration();
+  double sliderValue = 0.0;
+  bool isPlaying = false;
+
+  @override
+  void dispose() {
+    super.dispose();
+    playerServices.dispose();
+  }
 
   @override
   void initState() {
@@ -44,6 +60,26 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
       curve: Curves.easeInOutQuad,
       reverseCurve: Curves.easeInQuad,
     );
+
+    playerServices.initPlayer();
+    playerServices.initPlay(widget.song);
+    playerServices.audioPlayer.onDurationChanged.listen((event) {
+      finalDuration = event;
+      setState(() {});
+    });
+    playerServices.audioPlayer.onPositionChanged.listen((event) {
+      currentPosition = event;
+      sliderValue = currentPosition.inSeconds / finalDuration.inSeconds * 100;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+    playerServices.audioPlayer.onPlayerStateChanged.listen((event) {
+      isPlaying = (event == PlayerState.playing);
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -56,9 +92,6 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
 
   @override
   Widget build(BuildContext context) {
-    AudioPlayerBloc apb = context.read<AudioPlayerBloc>();
-    apb.add(AudioPlayerInit(songPath: widget.song.path));
-
     _responsive = MediaQuery.of(context).size;
     return Material(
       child: Stack(
@@ -66,7 +99,7 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
           Container(color: Theme.of(context).scaffoldBackgroundColor),
           _playerScreen(),
           _playListDrawer(),
-          _myHeader(),
+          //_myHeader(),
         ],
       ),
     );
@@ -79,18 +112,15 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           NeuBox(
-            padding: 5,
-            child: IconButton(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.arrow_back)),
-          ),
-          NeuBox(
+            isPressed: menuPressed,
             padding: 5,
             child: IconButton(
                 onPressed: () {
                   if (_animationController.value < 0.5) {
+                    menuPressed = true;
                     _animationController.forward();
                   } else {
+                    menuPressed = false;
                     _animationController.reverse();
                   }
                 },
@@ -210,11 +240,36 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
           children: [
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 25, right: 25, bottom: 25, top: 150),
+                padding: EdgeInsets.only(
+                    left: 25, right: 25, bottom: 25, top: _extraHeight),
                 child: Column(
                   children: [
-                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () => context.pop(),
+                          child: const NeuBox(
+                            isPressed: false,
+                            padding: 20,
+                            child: Icon(Icons.arrow_back),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            menuPressed = true;
+                            _animationController.forward();
+                          },
+                          child: NeuBox(
+                            isPressed: menuPressed,
+                            padding: 20,
+                            child: const Icon(Icons.menu),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 25),
 
                     //Album artwork
                     NeuBox(
@@ -225,110 +280,82 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                             width: double.infinity,
                             child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: BlocBuilder<AudioPlayerBloc,
-                                    AudioPlayerState>(
-                                  builder: (context, state) {
-                                    return state.currentSong.getImage();
-                                  },
-                                )),
+                                child: playerServices.currentSong.getImage()),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(15),
-                            child:
-                                BlocBuilder<AudioPlayerBloc, AudioPlayerState>(
-                              builder: (context, state) {
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      state.currentSong.getTitle(),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall,
-                                    ),
-                                    Text(
-                                      state.currentSong.getArtist(),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelMedium,
-                                    )
-                                  ],
-                                );
-                              },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  playerServices.currentSong.getTitle(),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                Text(
+                                  playerServices.currentSong.getArtist(),
+                                  style:
+                                      Theme.of(context).textTheme.labelMedium,
+                                )
+                              ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
 
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 25),
 
                     //song duration progress
                     Column(
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 25),
-                          child: BlocBuilder<AudioPlayerBloc, AudioPlayerState>(
-                            builder: (context, state) {
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    getCurrentPosition(
-                                        state.audioplayer.position),
-                                    style:
-                                        Theme.of(context).textTheme.labelMedium,
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      context
-                                          .read<AudioPlayerBloc>()
-                                          .add(AudioPlayerPrevious10());
-                                    },
-                                    icon: const Icon(Icons.replay_10),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      context
-                                          .read<AudioPlayerBloc>()
-                                          .add(AudioPlayerNext10());
-                                    },
-                                    icon: const Icon(Icons.forward_10),
-                                  ),
-                                  Text(
-                                    state.audioplayer.duration != null
-                                        ? getDurationOfSong(
-                                            state.audioplayer.duration!)
-                                        : '',
-                                    style:
-                                        Theme.of(context).textTheme.labelMedium,
-                                  ),
-                                ],
-                              );
-                            },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                stringByDuration(currentPosition),
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  playerServices.seekPrevious10();
+                                },
+                                icon: const Icon(Icons.replay_10),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  playerServices.seekNext10();
+                                },
+                                icon: const Icon(Icons.forward_10),
+                              ),
+                              Text(
+                                stringByDuration(finalDuration),
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        BlocBuilder<AudioPlayerBloc, AudioPlayerState>(
-                          builder: (context, state) {
-                            return NeuBox(
-                              padding: 0,
-                              child: Slider(
-                                min: 0,
-                                max: 100,
-                                value: state.audioplayer.duration != null
-                                    ? state.audioplayer.position.inSeconds /
-                                        state.audioplayer.duration!.inSeconds
-                                    : 0.0,
-                                activeColor: Colors.green,
-                                onChanged: (double value) {},
-                              ),
-                            );
-                          },
-                        )
+                        const SizedBox(height: 25),
+                        NeuBox(
+                          padding: 0,
+                          child: GestureDetector(
+                            onTapDown: (details) {
+                              sliderValue = (details.localPosition.dx - 20) /
+                                  (MediaQuery.of(context).size.width - 90);
+                              playerServices.seekPercent(sliderValue);
+                            },
+                            child: Slider(
+                              min: 0,
+                              max: 100,
+                              value: sliderValue,
+                              activeColor: Colors.green,
+                              onChanged: (double value) {},
+                            ),
+                          ),
+                        ),
                       ],
                     ),
 
@@ -344,19 +371,18 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                           child: GestureDetector(
                             onTapDown: (details) {
                               setState(() {
-                                skipNextPressed = true;
+                                skipPreviousPressed = true;
                               });
                             },
                             onTapUp: (details) {
                               setState(() {
-                                skipNextPressed = false;
+                                skipPreviousPressed = false;
                               });
                             },
-                            onTap: () => context
-                                .read<AudioPlayerBloc>()
-                                .add(AudioPlayerPreviousSong()),
+                            onTap: () => playerServices.previousSong(),
                             child: NeuBox(
-                              isPressed: skipNextPressed,
+                              padding: 20,
+                              isPressed: skipPreviousPressed,
                               child: const Icon(Icons.skip_previous),
                             ),
                           ),
@@ -367,9 +393,7 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                         Expanded(
                           flex: 2,
                           child: GestureDetector(
-                            onTap: () => context
-                                .read<AudioPlayerBloc>()
-                                .add(AudioPlayerPausePlay()),
+                            onTap: () => playerServices.pausePlay(),
                             onTapDown: (details) {
                               setState(() {
                                 playPressed = true;
@@ -380,40 +404,34 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                                 playPressed = false;
                               });
                             },
-                            child:
-                                BlocBuilder<AudioPlayerBloc, AudioPlayerState>(
-                              builder: (context, state) {
-                                return NeuBox(
-                                  isPressed: playPressed,
-                                  child: Icon(state.audioplayer.playing
-                                      ? Icons.pause
-                                      : Icons.play_arrow),
-                                );
-                              },
+                            child: NeuBox(
+                              padding: 20,
+                              isPressed: playPressed,
+                              child: Icon(
+                                  isPlaying ? Icons.pause : Icons.play_arrow),
                             ),
                           ),
                         ),
 
-                        const SizedBox(width: 15),
+                        const SizedBox(width: 25),
                         // skip next
                         Expanded(
                           flex: 1,
                           child: GestureDetector(
                             onTapDown: (details) {
                               setState(() {
-                                skipPreviousPressed = true;
+                                skipNextPressed = true;
                               });
                             },
                             onTapUp: (details) {
                               setState(() {
-                                skipPreviousPressed = false;
+                                skipNextPressed = false;
                               });
                             },
-                            onTap: () => context
-                                .read<AudioPlayerBloc>()
-                                .add(AudioPlayerNextSong()),
+                            onTap: () => playerServices.nextSong(),
                             child: NeuBox(
-                              isPressed: skipPreviousPressed,
+                              padding: 20,
+                              isPressed: skipNextPressed,
                               child: const Icon(Icons.skip_next),
                             ),
                           ),
@@ -430,16 +448,24 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
     );
   }
 
-  String getCurrentPosition(Duration position) {
-    String result = '${position.inMinutes}:';
-    if (position.inSeconds < 10) {
-      return '${result}0${position.inSeconds}';
-    } else {
-      return '$result${position.inSeconds}';
-    }
-  }
+  // String getCurrentPosition(Duration position) {
+  //   String result = '${position.inMinutes}:';
+  //   if (position.inSeconds < 10) {
+  //     return '${result}0${position.inSeconds}';
+  //   } else {
+  //     return '$result${position.inSeconds}';
+  //   }
+  // }
 
-  String getDurationOfSong(Duration position) {
+  // String getDurationOfSong(Duration position) {
+  //   if (position.inSeconds % 60 < 10) {
+  //     return '${position.inMinutes}:0${position.inSeconds % 60}';
+  //   } else {
+  //     return '${position.inMinutes}:${position.inSeconds % 60}';
+  //   }
+  // }
+
+  String stringByDuration(Duration position) {
     if (position.inSeconds % 60 < 10) {
       return '${position.inMinutes}:0${position.inSeconds % 60}';
     } else {

@@ -66,6 +66,7 @@ class SongLocalImpl {
     try {
       List<String> sources = await ExternalPath.getExternalStorageDirectories();
       List<String> typeToSearch = await getSources(sources);
+
       List<Song> result = await getSongsByDirs(typeToSearch);
       return result;
     } catch (e) {
