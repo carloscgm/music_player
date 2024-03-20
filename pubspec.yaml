@@ -28,16 +28,13 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   animations: ^2.0.11
-  assets_audio_player: ^3.1.1
-  bloc: ^8.1.3
+  audioplayers: ^5.2.1
   cached_network_image: ^3.3.1
   cupertino_icons: ^1.0.6
   dio: ^5.4.0
-  equatable: ^2.0.5
   external_path: ^1.0.3
   flutter:
     sdk: flutter
-  flutter_bloc: ^8.1.4
   flutter_inset_box_shadow: ^1.0.8
   flutter_localizations:
     sdk: flutter
@@ -46,7 +43,6 @@ dependencies:
   go_router: ^13.2.0
   intl: ^0.18.1
   metadata_god: ^0.5.2+1
-  audioplayers: ^5.2.1
   path: ^1.9.0
   path_provider: ^2.1.2
   permission_handler: ^11.3.0

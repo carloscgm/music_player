@@ -4,13 +4,16 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:music_player/core/di/app_modules.dart';
+import 'package:music_player/model/playlist.dart';
 import 'package:music_player/model/song.dart';
+import 'package:music_player/presentation/common/base/resource_state.dart';
 import 'package:music_player/presentation/common/widget/player/neu_box.dart';
+import 'package:music_player/presentation/view/playlist/viewmodel/playlist_view_model.dart';
 import 'package:music_player/service/player/player_services.dart';
 
 class PlayerPageDrawer extends StatefulWidget {
-  final Song song;
-  const PlayerPageDrawer({super.key, required this.song});
+  final PlayList playlist;
+  const PlayerPageDrawer({super.key, required this.playlist});
 
   @override
   State<PlayerPageDrawer> createState() => _PlayerPageDrawerState();
@@ -31,9 +34,17 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
   bool skipPreviousPressed = false;
   bool skipNextPressed = false;
   bool menuPressed = false;
+  bool menuDrawerPressed = true;
 
   //Player services
   PlayerServices playerServices = inject.get<PlayerServices>();
+  PlayListViewModel playListViewModel = inject.get<PlayListViewModel>();
+  List<Song> songList = [];
+  int currentIndex = 0;
+  int repeatMode = 0; //0 - Nada // 1 - Repeat one  // 2 - repeat all list
+  Icon repeatIcon = const Icon(Icons.repeat);
+  int shuffleMode = 0; //0 - nada  // 1 - next random song
+  Icon shuffleIcon = const Icon(Icons.shuffle);
 
   //dataStreams
   Duration currentPosition = const Duration();
@@ -61,23 +72,63 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
       reverseCurve: Curves.easeInQuad,
     );
 
-    playerServices.initPlayer();
-    playerServices.initPlay(widget.song);
-    playerServices.audioPlayer.onDurationChanged.listen((event) {
-      finalDuration = event;
-      setState(() {});
-    });
-    playerServices.audioPlayer.onPositionChanged.listen((event) {
-      currentPosition = event;
-      sliderValue = currentPosition.inSeconds / finalDuration.inSeconds * 100;
-      if (mounted) {
-        setState(() {});
-      }
-    });
-    playerServices.audioPlayer.onPlayerStateChanged.listen((event) {
-      isPlaying = (event == PlayerState.playing);
-      if (mounted) {
-        setState(() {});
+    playListViewModel.getSongsByPlaylist(widget.playlist);
+
+    playListViewModel.getSongsByPlaylistState.stream.listen((state) {
+      if (state.status == Status.COMPLETED) {
+        songList = state.data;
+        playerServices.initPlayer();
+        playerServices.initPlay(songList[currentIndex]);
+        playerServices.audioPlayer.onDurationChanged.listen((event) {
+          finalDuration = event;
+          setState(() {});
+        });
+        playerServices.audioPlayer.onPositionChanged.listen((event) {
+          currentPosition = event;
+          sliderValue =
+              currentPosition.inSeconds / finalDuration.inSeconds * 100;
+          if (mounted) {
+            setState(() {});
+          }
+        });
+        playerServices.audioPlayer.onPlayerStateChanged.listen((event) {
+          isPlaying = (event == PlayerState.playing);
+          if (event == PlayerState.completed) {
+            if (shuffleMode == 1) {
+              int randomIndex = Random().nextInt(songList.length - 1);
+              while (randomIndex == currentIndex && songList.length > 1) {
+                randomIndex = Random().nextInt(songList.length);
+              }
+              currentIndex = randomIndex;
+              playerServices.initPlay(songList[currentIndex]);
+            } else {
+              switch (repeatMode) {
+                case 0:
+                  if (currentIndex < songList.length - 1) {
+                    currentIndex++;
+                    playerServices.initPlay(songList[currentIndex]);
+                  }
+                  break;
+                case 1:
+                  playerServices.initPlay(songList[currentIndex]);
+                  break;
+                case 2:
+                  if (currentIndex < songList.length - 1) {
+                    currentIndex++;
+                    playerServices.initPlay(songList[currentIndex]);
+                  } else if (currentIndex == songList.length - 1) {
+                    currentIndex = 0;
+                    playerServices.initPlay(songList[currentIndex]);
+                  }
+                  break;
+                default:
+              }
+            }
+          }
+          if (mounted) {
+            setState(() {});
+          }
+        });
       }
     });
   }
@@ -99,48 +150,8 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
           Container(color: Theme.of(context).scaffoldBackgroundColor),
           _playerScreen(),
           _playListDrawer(),
-          //_myHeader(),
         ],
       ),
-    );
-  }
-
-  Widget _myAppBar() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          NeuBox(
-            isPressed: menuPressed,
-            padding: 5,
-            child: IconButton(
-                onPressed: () {
-                  if (_animationController.value < 0.5) {
-                    menuPressed = true;
-                    _animationController.forward();
-                  } else {
-                    menuPressed = false;
-                    _animationController.reverse();
-                  }
-                },
-                icon: const Icon(Icons.menu)),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _myHeader() {
-    return SafeArea(
-      child: AnimatedBuilder(
-          animation: _animator,
-          builder: (_, __) {
-            return Transform.translate(
-              offset: Offset((-_screen.width + 80) * _animator.value, 0),
-              child: _myAppBar(),
-            );
-          }),
     );
   }
 
@@ -167,8 +178,8 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
         child: Container(
           color: Theme.of(context).scaffoldBackgroundColor,
           child: Stack(
-            clipBehavior: Clip.none,
-            children: <Widget>[
+            //clipBehavior: Clip.none,
+            children: [
               Positioned(
                 top: 0,
                 bottom: 0,
@@ -189,27 +200,45 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                   child: SizedBox(
                     width: _maxSlide,
                     child: Padding(
-                        padding: const EdgeInsets.all(40.0),
-                        child: ListView.builder(
-                          itemCount: 5,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(
-                                'Cancion $index',
-                                style: Theme.of(context).textTheme.labelSmall,
+                        padding: const EdgeInsets.all(25.0),
+                        child: Column(
+                          children: [
+                            Text(widget.playlist.name,
+                                style: Theme.of(context).textTheme.titleSmall),
+                            const SizedBox(height: 15),
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: songList.length,
+                                itemBuilder: (context, index) {
+                                  return customListTile(index);
+                                },
                               ),
-                            );
-                          },
+                            ),
+                            const SizedBox(height: 15),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    menuDrawerPressed = true;
+                                    menuPressed = false;
+                                    _animationController.reverse();
+                                  },
+                                  child: NeuBox(
+                                    padding: 20,
+                                    isPressed: menuDrawerPressed,
+                                    child: const Icon(Icons.menu),
+                                  ),
+                                ),
+                                IconButton(
+                                    onPressed: repeatPressed, icon: repeatIcon),
+                                IconButton(
+                                    onPressed: shufflePressed,
+                                    icon: shuffleIcon),
+                              ],
+                            )
+                          ],
                         )),
-                  ),
-                ),
-              ),
-              AnimatedBuilder(
-                animation: _animator,
-                builder: (_, __) => Container(
-                  width: _maxSlide,
-                  color: Colors.black.withAlpha(
-                    (150 * (1 - _animator.value)).floor(),
                   ),
                 ),
               ),
@@ -241,11 +270,10 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
             SafeArea(
               child: Padding(
                 padding: EdgeInsets.only(
-                    left: 25, right: 25, bottom: 25, top: _extraHeight),
+                    left: 25, right: 25, bottom: 25, top: _extraHeight + 5),
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
                           onTap: () => context.pop(),
@@ -255,8 +283,22 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                             child: Icon(Icons.arrow_back),
                           ),
                         ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: (widget.playlist.songsTitles.length > 1)
+                              ? Text(
+                                  widget.playlist.name,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : Container(),
+                        ),
+                        const SizedBox(width: 10),
                         GestureDetector(
                           onTap: () {
+                            menuDrawerPressed = false;
                             menuPressed = true;
                             _animationController.forward();
                           },
@@ -280,21 +322,31 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                             width: double.infinity,
                             child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: playerServices.currentSong.getImage()),
+                                child: NeuBox(
+                                  isPressed: true,
+                                  child: playerServices.currentSong != null
+                                      ? Container()
+                                      : const Center(
+                                          child: CircularProgressIndicator()),
+                                )),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(15),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Text(
-                                  playerServices.currentSong.getTitle(),
+                                  playerServices.currentSong != null
+                                      ? playerServices.currentSong!.title
+                                      : '',
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: Theme.of(context).textTheme.titleSmall,
                                 ),
                                 Text(
-                                  playerServices.currentSong.getArtist(),
+                                  playerServices.currentSong != null
+                                      ? playerServices.currentSong!.getArtist()
+                                      : '',
                                   style:
                                       Theme.of(context).textTheme.labelMedium,
                                 )
@@ -379,7 +431,12 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                                 skipPreviousPressed = false;
                               });
                             },
-                            onTap: () => playerServices.previousSong(),
+                            onTap: () {
+                              if (currentIndex > 0) {
+                                currentIndex--;
+                                playerServices.initPlay(songList[currentIndex]);
+                              }
+                            },
                             child: NeuBox(
                               padding: 20,
                               isPressed: skipPreviousPressed,
@@ -428,7 +485,12 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
                                 skipNextPressed = false;
                               });
                             },
-                            onTap: () => playerServices.nextSong(),
+                            onTap: () {
+                              if (currentIndex < songList.length - 1) {
+                                currentIndex++;
+                                playerServices.initPlay(songList[currentIndex]);
+                              }
+                            },
                             child: NeuBox(
                               padding: 20,
                               isPressed: skipNextPressed,
@@ -448,28 +510,68 @@ class _PlayerPageDrawerState extends State<PlayerPageDrawer>
     );
   }
 
-  // String getCurrentPosition(Duration position) {
-  //   String result = '${position.inMinutes}:';
-  //   if (position.inSeconds < 10) {
-  //     return '${result}0${position.inSeconds}';
-  //   } else {
-  //     return '$result${position.inSeconds}';
-  //   }
-  // }
-
-  // String getDurationOfSong(Duration position) {
-  //   if (position.inSeconds % 60 < 10) {
-  //     return '${position.inMinutes}:0${position.inSeconds % 60}';
-  //   } else {
-  //     return '${position.inMinutes}:${position.inSeconds % 60}';
-  //   }
-  // }
-
   String stringByDuration(Duration position) {
     if (position.inSeconds % 60 < 10) {
       return '${position.inMinutes}:0${position.inSeconds % 60}';
     } else {
       return '${position.inMinutes}:${position.inSeconds % 60}';
     }
+  }
+
+  //0 - Nada // 1 - Repeat one  // 2 - repeat all list
+  repeatPressed() {
+    repeatMode++;
+    if (repeatMode == 3) repeatMode = 0;
+    switch (repeatMode) {
+      case 0:
+        repeatIcon = const Icon(Icons.repeat);
+        break;
+      case 1:
+        repeatIcon = const Icon(Icons.repeat_one);
+        break;
+      case 2:
+        repeatIcon = const Icon(Icons.repeat_on_outlined);
+        break;
+    }
+  }
+
+  //0 - nada  // 1 - next random song
+  shufflePressed() {
+    if (shuffleMode == 0) {
+      shuffleMode = 1;
+      shuffleIcon = const Icon(Icons.shuffle_on_outlined);
+    } else {
+      shuffleMode = 0;
+      shuffleIcon = const Icon(Icons.shuffle);
+    }
+  }
+
+  Widget customListTile(int index) {
+    return GestureDetector(
+      onTap: () {
+        currentIndex = index;
+        playerServices.initPlay(songList[index]);
+      },
+      child: Container(
+        margin: EdgeInsets.only(left: index == currentIndex ? 0 : 25),
+        height: 50,
+        child: Row(
+          children: [
+            index == currentIndex
+                ? Image.asset('assets/images/music2.gif', height: 25, width: 25)
+                : Container(),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                songList[index].title,
+                style: Theme.of(context).textTheme.labelSmall,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

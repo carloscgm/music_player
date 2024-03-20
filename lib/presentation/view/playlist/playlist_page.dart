@@ -65,6 +65,10 @@ class _PlayListPageState extends State<PlayListPage>
           return ListTile(
             title: Text(_playList[index].name),
             subtitle: Text('${_playList[index].songsTitles.length} canciones'),
+            onTap: () {
+              context.push(NavigationRoutes.playerRoute,
+                  extra: _playList[index]);
+            },
           );
         },
       ),

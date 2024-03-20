@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:music_player/core/di/app_modules.dart';
+import 'package:music_player/model/playlist.dart';
 import 'package:music_player/model/song.dart';
 import 'package:music_player/presentation/common/base/resource_state.dart';
 import 'package:music_player/presentation/common/localization/app_localizations.dart';
@@ -91,10 +92,13 @@ class ListSongs extends StatelessWidget {
       itemCount: list.length,
       itemBuilder: (context, index) {
         return ListTile(
-          onTap: () =>
-              context.push(NavigationRoutes.playerRoute, extra: list[index]),
+          onTap: () {
+            PlayList pl = PlayList(
+                name: 'new Playlist', songsTitles: [list[index].title]);
+            context.push(NavigationRoutes.playerRoute, extra: pl);
+          },
           title: Text(
-            list[index].getTitle(),
+            list[index].title,
             style: const TextStyle(fontSize: 14),
           ),
         );

@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: 'Music Player',
       theme: AppStyles.appTheme,
       darkTheme: AppStyles.appDarkTheme,
@@ -32,7 +33,6 @@ class MyApp extends StatelessWidget {
         LocalizationManager.init(context: context);
         return localizations.app_title;
       },
-      debugShowCheckedModeBanner: false,
     );
   }
 }

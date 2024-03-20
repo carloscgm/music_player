@@ -1,6 +1,7 @@
 import 'package:music_player/data/playlist/cache/playlist_cache_impl.dart';
 import 'package:music_player/domain/playlist_repository.dart';
 import 'package:music_player/model/playlist.dart';
+import 'package:music_player/model/song.dart';
 
 class PlaylistDataImpl implements PlayListRepository {
   final PlayListCacheImpl _playListCacheImpl;
@@ -19,5 +20,10 @@ class PlaylistDataImpl implements PlayListRepository {
   @override
   Future<void> removePlaylist(PlayList playlist) {
     return _playListCacheImpl.removePlaylist(playlist);
+  }
+
+  @override
+  Future<List<Song>> getSongsByPlaylist(PlayList playlist) {
+    return _playListCacheImpl.getSongsByPlaylist(playlist);
   }
 }

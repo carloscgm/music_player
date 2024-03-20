@@ -58,17 +58,18 @@ class Song {
     }
   }
 
-  String getTitle() {
-    if (title.contains('.')) {
-      return title.substring(0, title.lastIndexOf('.'));
-    } else {
-      return title;
-    }
-  }
+  // String getTitle() {
+  //   if (title.contains('.')) {
+  //     return title.substring(0, title.lastIndexOf('.'));
+  //   } else {
+  //     return title;
+  //   }
+  // }
 
   Song.fromMetadata(Metadata metadata, String pathOfSong) {
     title =
         metadata.title ?? pathOfSong.substring(pathOfSong.lastIndexOf('/') + 1);
+    title = title.replaceAll('.mp3', '');
     durationMs = metadata.durationMs;
     artist = metadata.artist;
     album = metadata.album;

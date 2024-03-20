@@ -14,10 +14,26 @@ class PlayListViewModel extends BaseViewModel {
 
   StreamController<ResourceState> playlistListState =
       StreamController<ResourceState>();
-  StreamController<ResourceState> addPlaylistListState =
+  StreamController<ResourceState> addPlaylistState =
       StreamController<ResourceState>();
-  StreamController<ResourceState> removePlaylistListState =
+  StreamController<ResourceState> removePlaylistState =
       StreamController<ResourceState>();
+  StreamController<ResourceState> getSongsByPlaylistState =
+      StreamController<ResourceState>();
+
+  Future<void> getSongsByPlaylist(PlayList playlist) async {
+    getSongsByPlaylistState.add(ResourceState.loading());
+
+    _playlistRepository
+        .getSongsByPlaylist(playlist)
+        .then((value) =>
+            getSongsByPlaylistState.add(ResourceState.completed(value)))
+        .catchError((e) {
+      getSongsByPlaylistState.add(ResourceState.error(
+          PlayListErrorBuilder.create(e, AppAction.GET_SONGS_BY_PLAYLIST)
+              .build()));
+    });
+  }
 
   Future<void> fetchPlayList() async {
     playlistListState.add(ResourceState.loading());
@@ -32,27 +48,25 @@ class PlayListViewModel extends BaseViewModel {
   }
 
   Future<void> addPlayList(PlayList playlist) async {
-    addPlaylistListState.add(ResourceState.loading());
+    addPlaylistState.add(ResourceState.loading());
 
     _playlistRepository
         .addPlaylist(playlist)
-        .then(
-            (value) => addPlaylistListState.add(ResourceState.completed(null)))
+        .then((value) => addPlaylistState.add(ResourceState.completed(null)))
         .catchError((e) {
-      addPlaylistListState.add(ResourceState.error(
+      addPlaylistState.add(ResourceState.error(
           PlayListErrorBuilder.create(e, AppAction.ADD_PLAYLIST).build()));
     });
   }
 
   Future<void> removePlayList(PlayList playlist) async {
-    removePlaylistListState.add(ResourceState.loading());
+    removePlaylistState.add(ResourceState.loading());
 
     _playlistRepository
         .removePlaylist(playlist)
-        .then((value) =>
-            removePlaylistListState.add(ResourceState.completed(null)))
+        .then((value) => removePlaylistState.add(ResourceState.completed(null)))
         .catchError((e) {
-      removePlaylistListState.add(ResourceState.error(
+      removePlaylistState.add(ResourceState.error(
           PlayListErrorBuilder.create(e, AppAction.REMOVE_PLAYLIST).build()));
     });
   }
@@ -60,7 +74,7 @@ class PlayListViewModel extends BaseViewModel {
   @override
   void dispose() {
     playlistListState.close();
-    addPlaylistListState.close();
-    removePlaylistListState.close();
+    addPlaylistState.close();
+    removePlaylistState.close();
   }
 }

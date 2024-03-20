@@ -7,7 +7,5 @@ abstract class PlayerRepository {
   Future<void> seekNext10();
   void seekPercent(double newPosition);
   Future<void> seekPrevious10();
-  Future<void> nextSong();
-  Future<void> previousSong();
   void dispose();
 }

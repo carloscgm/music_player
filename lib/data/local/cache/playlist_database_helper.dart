@@ -1,4 +1,4 @@
-import 'package:music_player/data/cache/base/database_helper.dart';
+import 'package:music_player/data/local/cache/base/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'database_tables.dart';

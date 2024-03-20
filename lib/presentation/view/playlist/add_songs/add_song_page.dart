@@ -69,7 +69,6 @@ class _AddSongPageState extends State<AddSongPage>
       body: _songList.isEmpty
           ? const EmptyListWidget()
           : Container(
-              color: Colors.white,
               child: ListView.builder(
                 itemCount: _songList.length,
                 itemBuilder: (context, index) {
@@ -105,7 +104,7 @@ class _AddSongPageState extends State<AddSongPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
-                        style: const TextStyle(color: Colors.black),
+                        //style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                             hintText:
                                 AppLocalizations.of(context)!.playlist_name),

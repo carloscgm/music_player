@@ -49,7 +49,7 @@ class _PlayerPageState extends State<PlayerPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.song.getTitle(),
+                                  widget.song.title,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: Theme.of(context).textTheme.titleSmall,

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:music_player/model/song.dart';
+import 'package:music_player/model/playlist.dart';
 import 'package:music_player/presentation/view/home/home_page.dart';
 import 'package:music_player/presentation/view/player/player_page_drawer.dart';
 import 'package:music_player/presentation/view/playlist/add_songs/add_song_page.dart';
@@ -88,8 +88,8 @@ final router = GoRouter(
           path: NavigationRoutes.playerRoute,
           parentNavigatorKey: _rootNavigatorKey,
           pageBuilder: (context, state) {
-            final Song extra = state.extra as Song;
-            return NoTransitionPage(child: PlayerPageDrawer(song: extra));
+            final PlayList extra = state.extra as PlayList;
+            return NoTransitionPage(child: PlayerPageDrawer(playlist: extra));
           }),
       GoRoute(
           path: NavigationRoutes.splashRoute,

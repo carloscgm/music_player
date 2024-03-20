@@ -3,11 +3,12 @@ import 'dart:io';
 import 'package:external_path/external_path.dart';
 import 'package:metadata_god/metadata_god.dart';
 import 'package:music_player/data/remote/error/remote_error_mapper.dart';
+import 'package:music_player/model/playlist.dart';
 import 'package:music_player/model/song.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class SongLocalImpl {
-  SongLocalImpl();
+class LocalImpl {
+  LocalImpl();
 
   final List<String> typeToSearchMaster = [
     ExternalPath.DIRECTORY_DOWNLOADS,
@@ -53,7 +54,8 @@ class SongLocalImpl {
             result.add(Song.fromMetadata(metadata, listita[j].path));
           } on Exception catch (_, __) {
             result.add(Song.fromData(
-                listita[j].path.substring(listita[j].path.lastIndexOf('/') + 1),
+                listita[j].path.substring(listita[j].path.lastIndexOf('/') + 1,
+                    listita[j].path.lastIndexOf('.')),
                 listita[j].path));
           }
         }
@@ -76,5 +78,25 @@ class SongLocalImpl {
 
   Future<PermissionStatus> permissionStatus() async {
     return await Permission.audio.status;
+  }
+
+  Future<List<Song>> getSongsByTitles(PlayList playList) async {
+    try {
+      List<String> sources = await ExternalPath.getExternalStorageDirectories();
+      List<String> typeToSearch = await getSources(sources);
+
+      List<Song> allSongs = await getSongsByDirs(typeToSearch);
+
+      List<Song> result = [];
+      for (int i = 0; i < allSongs.length; i++) {
+        if (playList.songsTitles.contains(allSongs[i].title)) {
+          result.add(allSongs[i]);
+        }
+      }
+
+      return result;
+    } catch (e) {
+      throw RemoteErrorMapper.getException(e);
+    }
   }
 }
